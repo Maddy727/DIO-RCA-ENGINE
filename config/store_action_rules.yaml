@@ -1,0 +1,89 @@
+source_file: Store_Action.xlsx
+non_perishable:
+- step: 1
+  name: High DIO Check
+  condition: S01_Weeks_Cover <= 1.1 * S01_Weeks_Cover_Target
+  result: No Action Required
+- step: 2
+  name: High DIO Check
+  condition: S01_Weeks_Cover > 1.1 * S01_Weeks_Cover_Target
+  goto: Phantom Inventory Check
+- step: 3
+  name: Phantom Inventory Check
+  condition: S02_Zero_Sales_Flag == 1
+  result: Recounting of SKU Required
+  note: If Days since last recount < N, 'Recounting not required' (N and the recount-date field are undefined;
+    not implemented).
+- step: 4
+  name: Phantom Inventory Check
+  condition: S02_Zero_Sales_Flag == 0
+  goto: Promo Context Check
+- step: 5
+  name: Promo Context Check
+  condition: S03_Active_Promo_Flag == 1
+  result: No Action — monitor post-promo velocity from Day 1 after promo ends
+- step: 6
+  name: Promo Context Check
+  condition: S03_Active_Promo_Flag == 0
+  goto: Upcoming Promo Check
+- step: 7
+  name: Upcoming Promo Check
+  condition: S04_Days_To_Promo_Start <= 14 AND S04_Upcoming_Promo_Flag == 1
+  result: No Action — monitor post-promo velocity from Day 1 after promo ends
+- step: 8
+  name: Upcoming Promo Check
+  condition: S04_Upcoming_Promo_Flag == 0
+  goto: Previous Promo Check
+- step: 9
+  name: Previous Promo Check
+  condition: S06_Days_Since_Promo_Ended > 7 AND S07_Post_Promo_Velocity_Ratio < 0.5
+  goto_true: Peer Shortage Check (post-promo branch)
+  goto_false: Season End Check
+  peer_shortage_outcomes:
+    1: Transfer Viable - Check with Network Planner and Execute
+    0: Markdown can be considered - check with Commercial Team and Execute
+- step: 10
+  name: Season End Check
+  condition: S08_Active_Season_Flag == 1 AND S09_Days_To_Season_End <= S01_Weeks_Cover * 7
+  goto_true: Peer Shortage Check (season-end branch)
+  goto_false: Network Imbalance Check
+  peer_shortage_outcomes:
+    1: Transfer Viable - Check with Network Planner and Execute
+    0: Markdown can be considered - check with Commercial Team and Execute
+- step: 11
+  name: Network Imbalance Check (Peer DIO)
+  condition: S12_Peer_DIO_Rate > 1.5
+  goto_true: Peer Shortage Check (peer-dio branch)
+  goto_false: Network Imbalance Check (Format DIO)
+  peer_shortage_outcomes:
+    1: Transfer Viable - Check with Network Planner and Execute
+    0: To decide among Transfer to distant Store or Markdown or Do-nothing
+- step: 12
+  name: Network Imbalance Check (Format DIO)
+  condition: S13_Format_DIO_Ratio > 1.5
+  goto_true: Peer Shortage Check (format-dio branch)
+  goto_false_result: To decide among Transfer to distant Store or Markdown or Do-nothing
+  peer_shortage_outcomes:
+    1: Transfer Viable - Check with Network Planner and Execute
+    0: To decide among Transfer to distant Store or Markdown or Do-nothing
+perishable:
+- step: 1
+  condition: S21_Is_Perishable == 1
+  goto_true: Expiry Check
+  goto_false: follow Non-perishable Store Action Rules
+- step: 2
+  condition: S22_Shelf_Life_Remaining_Days <= 0
+  result_true: Remove from Shelf
+  goto_false: check S22_Shelf_Life_Remaining_Days vs DIO
+- step: 3
+  condition: S22_Shelf_Life_Remaining_Days <= S01_Weeks_Cover * 7
+  result_true: Store Manager to decide between Markdown/Transfer/Dispose/Donate
+  goto_false: check for near-expiry batches
+  note: 'Corrected: uses Weeks Cover x7, matching RCA_Rules.xlsx Rule 15.'
+- step: 4
+  condition: S22_Shelf_Life_Remaining_Days <= 7
+  result_true: inventory will sell before expiry, Store Manager to monitor
+  then: follow Non-perishable Store Action Rules to find Root Cause
+  goto_false: follow Non-perishable Store Action Rules
+design_note: This is a single sequential decision-support cascade per SKU-Store (Gap 3, confirmed intentional).
+  It does not branch per RCA root cause and never produces more than one traversal result per SKU-Store.

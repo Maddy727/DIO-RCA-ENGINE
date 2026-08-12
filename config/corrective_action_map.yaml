@@ -1,0 +1,128 @@
+source_file: Root_Cause_-_Corrective_Action_-_Owner_-_Dashboard_View_Mapping.xlsx
+mappings:
+- S.no.: 1
+  Root Cause: Demand Decline
+  Problem Area: Demand
+  Corrective Action: Review Sales Velocity and re-adjust forecast
+  Action Owner: Demand Planner
+  Review Owner: Central Planner
+  Dashboard View: Central
+- S.no.: 2
+  Root Cause: Post-promo demand collapse
+  Problem Area: Demand
+  Corrective Action: Review post-promo forecast
+  Action Owner: Demand Planner
+  Review Owner: Central Planner
+  Dashboard View: Central
+- S.no.: 3
+  Root Cause: High Forecast Bias
+  Problem Area: Demand
+  Corrective Action: Review Forecast Bias
+  Action Owner: Demand Planner
+  Review Owner: Central Planner
+  Dashboard View: Central
+- S.no.: 4
+  Root Cause: Excess Supply
+  Problem Area: Supply
+  Corrective Action: Review Replenishment
+  Action Owner: Replenishment Planner
+  Review Owner: Central Planner
+  Dashboard View: Central
+- S.no.: 5
+  Root Cause: Promo Overbuy
+  Problem Area: Supply
+  Corrective Action: Review Promotional Buy
+  Action Owner: Buyer
+  Review Owner: Central Planner
+  Dashboard View: Central
+- S.no.: 6
+  Root Cause: Stale Par Level
+  Problem Area: Supply
+  Corrective Action: Review Par Level
+  Action Owner: Replenishment Planner
+  Review Owner: Central Planner
+  Dashboard View: Central
+- S.no.: 7
+  Root Cause: High Safety Stock
+  Problem Area: Supply
+  Corrective Action: Review Safety Stock
+  Action Owner: Replenishment Planner
+  Review Owner: Central Planner
+  Dashboard View: Central
+- S.no.: 8
+  Root Cause: Supplier MoQ Overbuy
+  Problem Area: Supply
+  Corrective Action: Review Supplier MoQ
+  Action Owner: Buyer
+  Review Owner: Central Planner
+  Dashboard View: Central
+- S.no.: 9
+  Root Cause: high stock vs format
+  Problem Area: Network
+  Corrective Action: Review Transfer Opportunity
+  Action Owner: Network Planner
+  Review Owner: Regional Manager
+  Dashboard View: Regional + Central
+- S.no.: 10
+  Root Cause: High stock vs peers
+  Problem Area: Network
+  Corrective Action: Review Transfer Opportunity
+  Action Owner: Network Planner
+  Review Owner: Regional Manager
+  Dashboard View: Regional + Central
+- S.no.: 11
+  Root Cause: Active Promo
+  Problem Area: Others
+  Corrective Action: Monitor
+  Action Owner: Store Manager
+  Review Owner: Regional Manager
+  Dashboard View: Store + Regional
+- S.no.: 12
+  Root Cause: Upcoming Promo
+  Problem Area: Others
+  Corrective Action: Monitor
+  Action Owner: Store Manager
+  Review Owner: Regional Manager
+  Dashboard View: Store + Regional
+- S.no.: 13
+  Root Cause: Possible Phantom Inventory
+  Problem Area: Others
+  Corrective Action: Recount Stock
+  Action Owner: Store Manager
+  Review Owner: Regional Manager
+  Dashboard View: Store + Regional
+- S.no.: 14
+  Root Cause: 'Expiry Risk: Short-Expiry SKU ordered more than actual demand'
+  Problem Area: Others
+  Corrective Action: Markdown/Transfer/Dispose/Donate and Suppress Replenishment
+  Action Owner: Store Manager
+  Review Owner: Regional Manager
+  Dashboard View: Store + Regional
+- S.no.: 15
+  Root Cause: Stock Expired
+  Problem Area: Others
+  Corrective Action: Remove from Shelf and Suppress Replenishment
+  Action Owner: Store Manager
+  Review Owner: Regional Manager
+  Dashboard View: Store + Regional
+- S.no.: 16
+  Root Cause: 'Near Expiry: Monitor'
+  Problem Area: Others
+  Corrective Action: Monitor
+  Action Owner: Store Manager
+  Review Owner: Regional Manager
+  Dashboard View: Store + Regional
+- S.no.: 17
+  Root Cause: Monitor - Review at next weekly cycle
+  Problem Area: Others
+  Corrective Action: Monitor
+  Action Owner: Store Manager
+  Review Owner: Regional Manager
+  Dashboard View: Store + Regional
+- S.no.: 18
+  Root Cause: Season-end write-off risk
+  Problem Area: Others
+  Corrective Action: Markdown/Transfer/Dispose/Donate and Suppress Replenishment
+  Action Owner: Store Manager
+  Review Owner: Regional Manager
+  Dashboard View: Store + Regional

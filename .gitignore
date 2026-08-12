@@ -1,0 +1,22 @@
+# Generated outputs — regenerated every time orchestrator.py runs
+data/outputs/*.csv
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# OS-specific junk
+.DS_Store
+Thumbs.db
+
+# Editor/IDE folders
+.vscode/
+.idea/
+
+# Secrets (none exist yet, but keep this here for when they do)
+.env

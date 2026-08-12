@@ -1,0 +1,37 @@
+client_name: sample_dataset (identity mapping)
+canonical_to_source:
+  Row_ID: Row_ID
+  SKU_ID: SKU_ID
+  SKU_Name: SKU_Name
+  Store_ID: Store_ID
+  Store_Name: Store_Name
+  Category: Category
+  Store_Format: Store_Format
+  Region: Region
+  S01_Weeks_Cover: S01_Weeks_Cover
+  S01_Weeks_Cover_Target: S01_Weeks_Cover_Target
+  S02_Zero_Sales_Flag: S02_Zero_Sales_Flag
+  S03_Active_Promo_Flag: S03_Active_Promo_Flag
+  S04_Upcoming_Promo_Flag: S04_Upcoming_Promo_Flag
+  S04_Days_To_Promo_Start: S04_Days_To_Promo_Start
+  S05_Promo_Stock_Ordered_Flag: S05_Promo_Stock_Ordered_Flag
+  S06_Days_Since_Promo_Ended: S06_Days_Since_Promo_Ended
+  S07_Post_Promo_Velocity_Ratio: S07_Post_Promo_Velocity_Ratio
+  S08_Active_Season_Flag: S08_Active_Season_Flag
+  S09_Days_To_Season_End: S09_Days_To_Season_End
+  S10_Sales_Velocity_Ratio: S10_Sales_Velocity_Ratio
+  S11_Peer_Active_Promo_Flag: S11_Peer_Active_Promo_Flag
+  S12_Peer_DIO_Rate: S12_Peer_DIO_Rate
+  S13_Format_DIO_Ratio: S13_Format_DIO_Ratio
+  S14_Peer_Shortage_Flag: S14_Peer_Shortage_Flag
+  S15_Forecast_vs_Actual_Pct: S15_Forecast_vs_Actual_Pct
+  S16_Par_Level_Age_Days: S16_Par_Level_Age_Days
+  S17_Excess_Supply_Ratio: S17_Excess_Supply_Ratio
+  S18_Promo_Excess_Supply_Ratio: S18_Promo_Excess_Supply_Ratio
+  S19_High_SS_Flag_Days: S19_High_SS_Flag_Days
+  S20_Supplier_MOQ_Ratio: S20_Supplier_MOQ_Ratio
+  S21_Is_Perishable: S21_Is_Perishable
+  S22_Shelf_Life_Remaining_Days: S22_Shelf_Life_Remaining_Days
+  Transfer_Lead_Time_Hours: Transfer_Lead_Time_Hours
+note: 'For a new client, only this file needs to change: map their raw column names (dict values) to the
+  canonical signal names (dict keys). No engine code changes.'

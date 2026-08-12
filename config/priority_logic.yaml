@@ -1,0 +1,91 @@
+source_file: Priority_Logic.xlsx
+formula: Priority Score = 0.7*Urgency Score + 0.1*Margin Score + 0.1*Excess Value Score + 0.1*DIO Severity
+  Score
+urgency_score_table:
+- S. no.: 1
+  Factor: Minimum of (S22_Shelf_Life_Remaining_Days, S09_Days_To_Season_End)
+  Operator: <=
+  Threshold: 1
+  Urgency Score: 5
+- S. no.: 2
+  Factor: Minimum of (S22_Shelf_Life_Remaining_Days, S09_Days_To_Season_End)
+  Operator: <=
+  Threshold: 7
+  Urgency Score: 4
+- S. no.: 3
+  Factor: Minimum of (S22_Shelf_Life_Remaining_Days, S09_Days_To_Season_End)
+  Operator: <=
+  Threshold: 14
+  Urgency Score: 3
+- S. no.: 4
+  Factor: Minimum of (S22_Shelf_Life_Remaining_Days, S09_Days_To_Season_End)
+  Operator: <=
+  Threshold: 30
+  Urgency Score: 2
+- S. no.: 5
+  Factor: Minimum of (S22_Shelf_Life_Remaining_Days, S09_Days_To_Season_End)
+  Operator: '>'
+  Threshold: 30
+  Urgency Score: 1
+margin_score_table:
+- S. no.: 1
+  Factor: Margin in bottom 20 percentile
+  Margin Score: 5
+- S. no.: 2
+  Factor: Margin between 20-40 percentile
+  Margin Score: 4
+- S. no.: 3
+  Factor: Margin between 40-60 percentile
+  Margin Score: 3
+- S. no.: 4
+  Factor: Margin between 60-80 percentile
+  Margin Score: 2
+- S. no.: 5
+  Factor: Margin in top 20 percentile
+  Margin Score: 1
+excess_value_score_table:
+- S. no.: 1
+  Factor: Excess Value in top 20 percentile
+  Excess Value Score: 5
+- S. no.: 2
+  Factor: Excess Value between 60-80 percentile
+  Excess Value Score: 4
+- S. no.: 3
+  Factor: Excess Value between 40-60 percentile
+  Excess Value Score: 3
+- S. no.: 4
+  Factor: Excess Value between 20-40 percentile
+  Excess Value Score: 2
+- S. no.: 5
+  Factor: Excess Value in bottom 20 percentile
+  Excess Value Score: 1
+dio_severity_score_table:
+- S. no.: 1
+  Factor: DIO >= 5 x Target
+  DIO Severity Score: 5
+- S. no.: 2
+  Factor: DIO >= 4 x Target
+  DIO Severity Score: 4
+- S. no.: 3
+  Factor: DIO >= 3 x Target
+  DIO Severity Score: 3
+- S. no.: 4
+  Factor: DIO >= 2 x Target
+  DIO Severity Score: 2
+- S. no.: 5
+  Factor: DIO >= 1.5 x Target
+  DIO Severity Score: 1
+urgency_factor_fields:
+- S22_Shelf_Life_Remaining_Days
+- S09_Days_To_Season_End
+urgency_factor_note: MIN() of the two fields above; -1 sentinel values (non-seasonal / not perishable)
+  are excluded from the MIN before scoring.
+dio_definition: DIO = S01_Weeks_Cover * 7 (days). DIO Target = S01_Weeks_Cover_Target * 7 (days).
+margin_percentile_population: within Store_ID, DIO intervention population only
+excess_value_percentile_population: within Store_ID, DIO intervention population only
+margin_direction: lowest margin percentile -> highest Margin Score (intentional, confirmed)
+small_population_fallback:
+  threshold_eligible_rows: 4
+  rule: If a store has fewer than 4 eligible SKU-Store rows, Margin_Score = 3 and Excess_Value_Score =
+    3 (fixed mid-score), and the corresponding percentile fields are left NULL. No network-wide fallback,
+    no raw-rank substitute.
