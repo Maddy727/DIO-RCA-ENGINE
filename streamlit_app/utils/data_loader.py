@@ -62,32 +62,41 @@ def _load_financial_data() -> pd.DataFrame:
 
 @st.cache_data(show_spinner=False)
 def _load_engine_outputs() -> dict[str, pd.DataFrame]:
+    """
+    ALWAYS regenerates the 4 output CSVs by running the already-validated
+    engine/orchestrator.py, rather than only regenerating when files are
+    missing.
+
+    Why: on Streamlit Community Cloud, a `git push` restarts the app but
+    does NOT necessarily wipe files that were written to disk by a
+    previous run (data/outputs/*.csv is gitignored, so it's never part of
+    the fresh git pull — but if it was already written to disk by an
+    earlier session, it can silently persist and get served instead of
+    being regenerated from your latest engine code). Always regenerating
+    here removes that entire class of "stale output survives a code fix"
+    bug. This whole function is wrapped in @st.cache_data, so despite
+    "always" regenerating, it still only actually runs ONCE per running
+    app process (not on every filter change / page interaction) — so this
+    does not reintroduce the "don't re-run the engine on every filter
+    change" performance concern.
+    """
+    import sys
+    engine_dir = os.path.join(PROJECT_ROOT, "engine")
+    sys.path.insert(0, engine_dir)
+    import orchestrator as engine_orchestrator
+    os.makedirs(OUTPUTS_DIR, exist_ok=True)
+    engine_orchestrator.run(
+        sample_data_path=SAMPLE_DATA_PATH,
+        financial_data_path=FINANCIAL_DATA_PATH,
+        output_dir=OUTPUTS_DIR,
+    )
+
     required = ["rca_output.csv", "store_action_output.csv",
                 "corrective_action_output.csv", "priority_output.csv"]
     missing = [f for f in required if not os.path.exists(os.path.join(OUTPUTS_DIR, f))]
     if missing:
-        # Self-healing: on a fresh deploy (e.g. Streamlit Community Cloud),
-        # data/outputs/*.csv is intentionally gitignored (it's a regenerated
-        # artifact, not source data) so it won't exist in a freshly-cloned
-        # repo. Rather than fail, run the ALREADY-VALIDATED orchestrator
-        # once to generate it. This calls engine/orchestrator.py exactly as
-        # a human would from the command line — it does not reimplement or
-        # alter any business logic, it just runs the existing entry point.
-        import sys
-        engine_dir = os.path.join(PROJECT_ROOT, "engine")
-        sys.path.insert(0, engine_dir)
-        import orchestrator as engine_orchestrator
-        os.makedirs(OUTPUTS_DIR, exist_ok=True)
-        engine_orchestrator.run(
-            sample_data_path=SAMPLE_DATA_PATH,
-            financial_data_path=FINANCIAL_DATA_PATH,
-            output_dir=OUTPUTS_DIR,
-        )
-        missing = [f for f in required if not os.path.exists(os.path.join(OUTPUTS_DIR, f))]
-        if missing:
-            raise FileNotFoundError(
-                f"Engine output file(s) still missing after running the orchestrator: {missing}."
-            )
+        raise FileNotFoundError(f"Engine output file(s) still missing after running the orchestrator: {missing}.")
+
     return {
         "rca": pd.read_csv(os.path.join(OUTPUTS_DIR, "rca_output.csv")),
         "store_action": pd.read_csv(os.path.join(OUTPUTS_DIR, "store_action_output.csv")),
