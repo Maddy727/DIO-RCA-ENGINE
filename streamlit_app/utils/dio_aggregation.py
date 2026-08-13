@@ -50,12 +50,19 @@ import pandas as pd
 def add_dio_fields(df: pd.DataFrame) -> pd.DataFrame:
     """
     Adds per-row presentation fields to a wide (one-row-per-SKU-Store)
-    dataframe: DIO, DIO_Target, Inventory_Value, Daily_Units_Sold, Daily_COGS.
-    Does not mutate the input; returns a new dataframe.
+    dataframe: DIO, DIO_Target, DIO_Variance, Inventory_Value,
+    Daily_Units_Sold, Daily_COGS. Does not mutate the input; returns a new
+    dataframe.
+
+    Note: DIO_Variance here is the simple per-row DIO - DIO_Target (no
+    weighting needed at row level — value-weighting only matters when
+    AGGREGATING across multiple rows, which rollup() below handles
+    separately for grouped views).
     """
     out = df.copy()
     out["DIO"] = out["S01_Weeks_Cover"] * 7
     out["DIO_Target"] = out["S01_Weeks_Cover_Target"] * 7
+    out["DIO_Variance"] = out["DIO"] - out["DIO_Target"]
     out["Inventory_Value"] = out["Current_Stock_Units"] * out["Unit_Cost"]
     out["Daily_Units_Sold"] = out.apply(
         lambda r: (r["Current_Stock_Units"] / r["DIO"]) if r["DIO"] and r["DIO"] > 0 else 0.0,

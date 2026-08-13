@@ -24,21 +24,36 @@ import pandas as pd
 MAX_PRIORITY_SCORE = 5.0
 
 LABEL_COLORS = {
-    "Emergency": "#B00020",
-    "Urgent": "#E65100",
-    "High": "#F9A825",
-    "Medium": "#1565C0",
-    "Low": "#78909C",
+    "Emergency": "#C81E3A",
+    "Urgent": "#D97B0A",
+    "High": "#E0A800",
+    "Medium": "#0B5AA8",
+    "Low": "#6C7688",
+    "Not Scored": "#C4CAD4",
 }
 
 LABEL_ORDER = ["Emergency", "Urgent", "High", "Medium", "Low"]
 
 
 def normalize_priority_pct(priority_score: float) -> float:
+    if priority_score is None or pd.isna(priority_score):
+        return float("nan")
     return (priority_score / MAX_PRIORITY_SCORE) * 100.0
 
 
 def priority_label(priority_score: float) -> str:
+    """
+    Returns one of the 5 approved labels, or "Not Scored" for SKU-Stores
+    the Priority module never scored (healthy/non-eligible — DIO within
+    target, no RCA action). "Not Scored" is NOT one of the 5 approved
+    priority bands and must never be conflated with "Low" — a genuinely
+    low-urgency-but-eligible SKU is a different thing from a healthy SKU
+    that was never scored at all. (Bug found and fixed: NaN comparisons
+    like `NaN >= 80` are always False in Python, so unscored rows were
+    silently falling through to "Low" before this fix.)
+    """
+    if priority_score is None or pd.isna(priority_score):
+        return "Not Scored"
     pct = normalize_priority_pct(priority_score)
     if pct >= 80:
         return "Emergency"

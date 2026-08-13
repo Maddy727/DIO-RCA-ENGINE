@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "engine"))
 from data_mapping import load_sku_store_data  # noqa: E402
 from store_action import StoreActionEngine  # noqa: E402
 
-DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "sample", "Sample_RCA_Data.xlsx")
+DATA_PATH = os.path.join(os.path.dirname(__file__), "fixtures", "Sample_RCA_Data_70row_ValidationBaseline.xlsx")
 
 
 def test_gate_closed_non_perishable_no_action():

@@ -3,3 +3,4 @@ pyyaml
 streamlit
 pandas
 plotly
+python-calamine

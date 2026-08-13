@@ -14,7 +14,7 @@ from data_mapping import load_sku_store_data  # noqa: E402
 from rca_engine import RcaEngine  # noqa: E402
 from corrective_action import CorrectiveActionAssembler  # noqa: E402
 
-DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "sample", "Sample_RCA_Data.xlsx")
+DATA_PATH = os.path.join(os.path.dirname(__file__), "fixtures", "Sample_RCA_Data_70row_ValidationBaseline.xlsx")
 
 
 def test_row_count_matches_and_no_unmapped_causes():

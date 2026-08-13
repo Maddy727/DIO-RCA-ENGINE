@@ -70,13 +70,48 @@ def owner_accountability(corrective_action_long: pd.DataFrame, financial_by_sku_
 
 
 def category_x_problem_area(rca_long: pd.DataFrame, master: pd.DataFrame) -> pd.DataFrame:
-    """Pivot: Category (rows) x Problem Area (columns), cell = count of fired root causes."""
+    """
+    Pivot: Category (rows) x Problem Area (columns), cell = COUNT OF UNIQUE
+    SKU-STORES (not count of fired root-cause records).
+
+    Changed per your decision (option b): the previous version counted
+    fired root-cause RECORDS, which over-counts SKU-Stores that fire 2+
+    root causes within the same Problem Area (e.g. "High stock vs peers"
+    AND "High Stock vs Format" both firing under "Network" for the same
+    SKU-Store) — confirmed on the real data that every cell differed
+    between the two interpretations. This version de-duplicates to unique
+    (SKU_ID, Store_ID) pairs per cell before counting, so the heatmap and
+    its "Count of SKUs" label are now literally accurate.
+    """
     merged = rca_long.merge(master[["SKU_ID", "Store_ID", "Category"]], on=["SKU_ID", "Store_ID"], how="left")
+    dedup = merged.drop_duplicates(subset=["SKU_ID", "Store_ID", "Category", "Problem_Area"])
     pivot = pd.pivot_table(
-        merged, index="Category", columns="Problem_Area", values="Root_Cause",
+        dedup, index="Category", columns="Problem_Area", values="SKU_ID",
         aggfunc="count", fill_value=0,
     )
     return pivot
+
+
+def top_skus_by_dio_variance(wide: pd.DataFrame, top_n: int = 10) -> pd.DataFrame:
+    """
+    Top N SKU-Store rows by DIO_Variance (descending), for the
+    "Top 10 SKUs by DIO Variance" chart. wide must already have DIO_Variance
+    computed (dio_aggregation.add_dio_fields, plus a per-row variance —
+    see dio_aggregation.add_row_level_variance).
+    """
+    return wide.sort_values("DIO_Variance", ascending=False).head(top_n)
+
+
+def actions_required_sku_count(wide: pd.DataFrame) -> pd.DataFrame:
+    """Count of SKU-Stores by Store_Action_Recommendation, for the
+    'Actions Required' donut paired with the Top 10 SKUs by DIO Variance chart."""
+    return (
+        wide.dropna(subset=["Store_Action_Recommendation"])
+        .groupby("Store_Action_Recommendation")
+        .size()
+        .reset_index(name="Count")
+        .sort_values("Count", ascending=False)
+    )
 
 
 def dashboard_view_filter(corrective_action_long: pd.DataFrame, view: str) -> pd.DataFrame:
