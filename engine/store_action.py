@@ -116,8 +116,18 @@ class StoreActionEngine:
         path.append("Step11: Network Imbalance Check (Peer DIO)")
         pdio = _f(row, "S12_Peer_DIO_Rate")
         if pdio is not None and pdio > 1.5:
-            recommendation = self._peer_shortage_outcome(row, path)
-            return StoreActionResult(sku_id, store_id, "Non-perishable", recommendation, path)
+            psf = _f(row, "S14_Peer_Shortage_Flag")
+            if psf == 1:
+                path.append("Peer_Shortage_Flag == 1")
+                return StoreActionResult(
+                    sku_id, store_id, "Non-perishable",
+                    "Transfer Viable - Check with Network Planner and Execute", path,
+                )
+            path.append("Peer_Shortage_Flag == 0")
+            return StoreActionResult(
+                sku_id, store_id, "Non-perishable",
+                "To decide among Transfer to distant Store or Markdown or Do-nothing", path,
+            )
 
         # Step 12: Network Imbalance Check (Format DIO)
         path.append("Step12: Network Imbalance Check (Format DIO)")
