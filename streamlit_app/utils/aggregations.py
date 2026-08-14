@@ -124,3 +124,22 @@ def dashboard_view_filter(corrective_action_long: pd.DataFrame, view: str) -> pd
     return corrective_action_long[
         corrective_action_long["Dashboard_View"].str.contains(view, case=False, na=False)
     ]
+
+
+def add_shelf_life_display(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds a 'Shelf_Life_Display' text column: 'N/A' for non-perishable rows
+    (S22 carries a 999 sentinel there — never shown as a real day count),
+    'Expired (Xd)' for already-expired stock, 'Xd' otherwise. Presentation
+    only — does not touch S22_Shelf_Life_Remaining_Days itself, so the
+    underlying (numeric) value is still available for sorting/filtering
+    if ever needed.
+    """
+    from components.styling import format_shelf_life
+
+    out = df.copy()
+    out["Shelf_Life_Display"] = out.apply(
+        lambda r: format_shelf_life(r.get("S22_Shelf_Life_Remaining_Days"), r.get("S21_Is_Perishable")),
+        axis=1,
+    )
+    return out

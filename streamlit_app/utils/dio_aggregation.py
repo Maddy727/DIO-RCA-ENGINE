@@ -54,10 +54,14 @@ def add_dio_fields(df: pd.DataFrame) -> pd.DataFrame:
     Daily_Units_Sold, Daily_COGS. Does not mutate the input; returns a new
     dataframe.
 
-    Note: DIO_Variance here is the simple per-row DIO - DIO_Target (no
-    weighting needed at row level — value-weighting only matters when
-    AGGREGATING across multiple rows, which rollup() below handles
-    separately for grouped views).
+    Daily_Units_Sold/Daily_COGS are computed from FULL-PRECISION DIO/
+    DIO_Target first (these feed into rollup()'s value-weighted aggregate
+    math, which should stay as precise as possible). DIO/DIO_Target/
+    DIO_Variance are then rounded to 1 decimal for display AFTER that —
+    fixes a real bug where raw floating-point arithmetic (e.g.
+    2.31*7 - 14.0 = -11.829999999999998) was flowing straight into SKU-
+    level charts/tables with no rounding applied anywhere upstream of the
+    chart's own text formatting.
     """
     out = df.copy()
     out["DIO"] = out["S01_Weeks_Cover"] * 7
@@ -69,6 +73,10 @@ def add_dio_fields(df: pd.DataFrame) -> pd.DataFrame:
         axis=1,
     )
     out["Daily_COGS"] = out["Daily_Units_Sold"] * out["Unit_Cost"]
+
+    out["DIO"] = out["DIO"].round(1)
+    out["DIO_Target"] = out["DIO_Target"].round(1)
+    out["DIO_Variance"] = out["DIO_Variance"].round(1)
     return out
 
 

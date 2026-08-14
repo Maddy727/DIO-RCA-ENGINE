@@ -77,9 +77,10 @@ perishable:
   goto_false: check S22_Shelf_Life_Remaining_Days vs DIO
 - step: 3
   condition: S22_Shelf_Life_Remaining_Days <= S01_Weeks_Cover * 7
-  result_true: Store Manager to decide between Markdown/Transfer/Dispose/Donate
+  result_true: Store Manager to decide between Markdown/Transfer/Dispose/Donate for expiry-risk SKU
   goto_false: check for near-expiry batches
-  note: 'Corrected: uses Weeks Cover x7, matching RCA_Rules.xlsx Rule 15.'
+  note: 'Corrected: uses Weeks Cover x7, matching RCA_Rules.xlsx Rule 15 (both now inclusive <=). Recommendation
+    text updated 2026-08-14 per your instruction.'
 - step: 4
   condition: S22_Shelf_Life_Remaining_Days <= 7
   result_true: inventory will sell before expiry, Store Manager to monitor

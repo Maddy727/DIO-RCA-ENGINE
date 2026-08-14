@@ -89,13 +89,14 @@ def render_drilldown(namespace: str, scoped_wide: pd.DataFrame, rca_long: pd.Dat
 
 
 def _render_sku_list_and_detail(namespace, scoped, full_wide, rca_long, corrective_action_long):
-    from utils.aggregations import summarize_root_causes
+    from utils.aggregations import summarize_root_causes, add_shelf_life_display
 
     summary = summarize_root_causes(rca_long)
     sku_summary = scoped.merge(summary, on=["SKU_ID", "Store_ID"], how="left")
+    sku_summary = add_shelf_life_display(sku_summary)
     sku_summary = sku_summary[[
         "SKU_ID", "SKU_Name", "Category", "Store_Name", "Root_Cause_Summary",
-        "DIO", "DIO_Target", "Excess_Value", "Priority_Score",
+        "DIO", "DIO_Target", "Shelf_Life_Display", "Excess_Value", "Priority_Score",
     ]].sort_values("Priority_Score", ascending=False)
 
     st.markdown(f"**{len(sku_summary)} SKU-Store(s) in scope**")

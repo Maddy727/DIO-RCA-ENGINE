@@ -215,11 +215,11 @@ class RcaEngine:
         if slr <= 0:
             return RcaFinding(sku_id, store_id, 14, "Stock Expired",
                                "S22_Shelf_Life_Remaining_Days", slr, "<= 0", "")
-        if wc is not None and slr < wc * 7:
+        if wc is not None and slr <= wc * 7:
             return RcaFinding(sku_id, store_id, 15,
                                "Expiry Risk: Short-Expiry SKU ordered more than actual demand",
                                "S22_Shelf_Life_Remaining_Days", slr,
-                               "< S01_Weeks_Cover * 7", "")
+                               "<= S01_Weeks_Cover * 7", "")
         if slr < 7:
             return RcaFinding(sku_id, store_id, 16, "Near Expiry: Monitor",
                                "S22_Shelf_Life_Remaining_Days", slr, "< 7", "")

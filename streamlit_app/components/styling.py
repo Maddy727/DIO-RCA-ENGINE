@@ -69,6 +69,22 @@ def format_variance_days(value: float) -> str:
     return f"{sign}{value:.1f}d"
 
 
+def format_shelf_life(value: float, is_perishable) -> str:
+    """
+    Shelf Life Remaining is only meaningful for perishable SKUs — non-
+    perishable rows carry a 999 sentinel (S22_Shelf_Life_Remaining_Days'
+    "not applicable" placeholder, per the engine's own convention) which
+    must never be displayed as if it were a real day count. Shows '-' for
+    non-perishable (per your instruction), not 'N/A'.
+    """
+    perishable = is_perishable == 1 or is_perishable is True
+    if not perishable or value is None or value >= 999:
+        return "-"
+    if value <= 0:
+        return f"Expired ({value:.1f}d)"
+    return f"{value:.1f}d"
+
+
 def format_count(value) -> str:
     if value is None:
         return "0"

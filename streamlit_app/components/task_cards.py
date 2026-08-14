@@ -16,7 +16,7 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from utils.priority_labels import priority_label, LABEL_COLORS, LABEL_ORDER
+from utils.priority_labels import priority_label, LABEL_COLORS
 from utils.aggregations import dashboard_view_filter
 from components.styling import format_gbp, priority_badge_html
 
@@ -24,7 +24,26 @@ TASK_GROUP_DEFINITIONS = [
     {
         "title": "Perishable Expiry Risk",
         "icon": "🍎",
-        "match": lambda df: df["Path_Taken"] == "Perishable",
+        # BUG FIX (found 2026-08-13, reported via SKU_FRO_0094/0095 at Express
+        # Aberdeen): previously matched on Path_Taken == "Perishable" alone.
+        # But a perishable-flagged SKU with plenty of shelf life remaining
+        # falls through the perishable rules to the non-perishable evaluation
+        # (see engine/store_action.py Step 4's else-branch) and can land on
+        # "No Action Required", "Transfer Viable", etc. — genuinely nothing
+        # to do with expiry. Confirmed on real data: of 8,164 Path_Taken ==
+        # "Perishable" rows, only 3,466 actually carry an expiry-driven
+        # recommendation; the rest (No Action Required, Transfer, Monitor,
+        # Recount...) were being incorrectly bucketed into this card. Now
+        # matches on the ACTUAL recommendation text instead — the two
+        # outcomes the engine only ever produces when shelf life itself is
+        # the trigger (Steps 2 and 3 of the perishable rules).
+        "match": lambda df: (
+            (df["Path_Taken"] == "Perishable")
+            & (
+                (df["Store_Action_Recommendation"] == "Remove from Shelf")
+                | (df["Store_Action_Recommendation"] == "Store Manager to decide between Markdown/Transfer/Dispose/Donate for expiry-risk SKU")
+            )
+        ),
         "color": "#B00020",
         "cta": "DO NOW",
     },
@@ -87,7 +106,7 @@ def render_task_cards(scoped_wide: pd.DataFrame, namespace: str = "sm_tasks"):
 
         n_skus = len(subset)
         excess_value = subset["Excess_Value"].sum()
-        top_label = _highest_priority_label(subset)
+        top_label = _compute_task_card_label(group["title"], subset)
 
         with st.container():
             st.markdown(
@@ -162,9 +181,33 @@ def render_fyi_strip(scoped_wide: pd.DataFrame, corrective_action_long: pd.DataF
     )
 
 
-def _highest_priority_label(subset: pd.DataFrame) -> str:
-    labels = subset["Priority_Score"].apply(priority_label)
-    for lbl in LABEL_ORDER:  # ordered Emergency..Low
-        if (labels == lbl).any():
-            return lbl
-    return "Low"
+def _compute_task_card_label(group_title: str, subset: pd.DataFrame) -> str:
+    """
+    Badge logic per task card, agreed with you 2026-08-14:
+      - Perishable Expiry Risk: Emergency if ANY matched SKU has
+        S22_Shelf_Life_Remaining_Days <= 7, else Urgent.
+      - Recount Required: always Urgent.
+      - Monitor — Post-Promo: always Low.
+      - Every other group (Transfer Viable, Markdown Recommended,
+        Transfer/Markdown/Do-Nothing Decision): mean of Priority_Score
+        across the group's matched SKUs, banded through the same
+        normalize-against-defined-max + 80/60/40/20 thresholds used
+        everywhere else (utils.priority_labels.priority_label) — a single
+        source of truth for the banding logic, not a re-implementation.
+
+    Confirmed (2026-08-14, verified against the full 20,084-row dataset):
+    every SKU matched by any task card group always has a real, non-null
+    Priority_Score — structurally guaranteed by how the two engines' gates
+    and conditions align — so .mean() here never silently averages in a
+    NaN "Not Scored" row for these specific groups.
+    """
+    if group_title == "Perishable Expiry Risk":
+        if (subset["S22_Shelf_Life_Remaining_Days"] <= 7).any():
+            return "Emergency"
+        return "Urgent"
+    if group_title == "Recount Required":
+        return "Urgent"
+    if group_title == "Monitor — Post-Promo":
+        return "Low"
+    avg_score = subset["Priority_Score"].mean()
+    return priority_label(avg_score)

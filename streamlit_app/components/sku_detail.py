@@ -28,7 +28,7 @@ import pandas as pd
 import streamlit as st
 
 from utils.priority_labels import priority_label, normalize_priority_pct, LABEL_COLORS
-from components.styling import format_gbp, format_days, priority_badge_html, priority_dot_label_html
+from components.styling import format_gbp, format_days, format_shelf_life, priority_badge_html, priority_dot_label_html
 
 
 def render_sku_detail(sku_id: str, store_id: str, wide: pd.DataFrame,
@@ -56,12 +56,23 @@ def render_sku_detail(sku_id: str, store_id: str, wide: pd.DataFrame,
             unsafe_allow_html=True,
         )
 
-    c1, c2, c3, c4, c5 = st.columns(5)
+    is_perishable = row.get("S21_Is_Perishable") == 1
+    shelf_life_str = format_shelf_life(row.get("S22_Shelf_Life_Remaining_Days"), row.get("S21_Is_Perishable"))
+    slr = row.get("S22_Shelf_Life_Remaining_Days")
+
+    # Always shown (per your instruction — "-" for non-perishable rather
+    # than omitting the metric entirely), positioned after DIO Target and
+    # before Current Stock.
+    c1, c2, c3, c4, c5, c6 = st.columns(6)
     c1.metric("DIO", format_days(row["DIO"]))
     c2.metric("DIO Target", format_days(row["DIO_Target"]))
-    c3.metric("Current Stock", f"{row['Current_Stock_Units']:,.0f} units")
-    c4.metric("Excess Units", f"{row['Excess_Units']:,.0f} units")
-    c5.metric("Excess Value", format_gbp(row["Excess_Value"]))
+    if is_perishable and slr is not None and slr <= 7:
+        c3.metric("Remaining Shelf Life", shelf_life_str, delta="Act now", delta_color="inverse")
+    else:
+        c3.metric("Remaining Shelf Life", shelf_life_str)
+    c4.metric("Current Stock", f"{row['Current_Stock_Units']:,.0f} units")
+    c5.metric("Excess Units", f"{row['Excess_Units']:,.0f} units")
+    c6.metric("Excess Value", format_gbp(row["Excess_Value"]))
 
     tab_rca, tab_actions, tab_priority = st.tabs(["RCA Details", "Actions", "Priority"])
 

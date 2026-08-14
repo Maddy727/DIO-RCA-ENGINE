@@ -51,10 +51,11 @@ rules:
   note: First check Rule 14, then Rule 15, then Rule 16, in that order. If Rule 14 true, skip 15 & 16.
     If Rule 15 true, skip 16.
 - id: 15
-  condition: S22_Shelf_Life_Remaining_Days < S01_Weeks_Cover * 7
+  condition: S22_Shelf_Life_Remaining_Days <= S01_Weeks_Cover * 7
   root_cause: 'Expiry Risk: Short-Expiry SKU ordered more than actual demand'
-  note: 'Corrected: uses Weeks Cover x7. Continue evaluating other signals for more root causes after
-    this fires.'
+  note: 'Corrected: uses Weeks Cover x7, operator made inclusive (<=) to match Store_Action.xlsx Step
+    3, per your instruction 2026-08-14. Continue evaluating other signals for more root causes after this
+    fires.'
 - id: 16
   condition: S22_Shelf_Life_Remaining_Days < 7
   root_cause: 'Near Expiry: Monitor'

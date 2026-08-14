@@ -40,6 +40,8 @@ FRIENDLY_LABELS = {
     "Review_Owner": "Review Owner",
     "Corrective_Action": "Corrective Action",
     "Store_Action_Recommendation": "Store Action",
+    "S22_Shelf_Life_Remaining_Days": "Remaining Shelf Life",
+    "Shelf_Life_Display": "Remaining Shelf Life",
     "Current_Stock_Units": "Current Stock",
     "Target_Stock_Units": "Target Stock",
     "Rank": "Rank",

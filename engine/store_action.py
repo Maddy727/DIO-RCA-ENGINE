@@ -166,7 +166,7 @@ class StoreActionEngine:
         if slr is not None and wc is not None and slr <= wc * 7:
             return StoreActionResult(
                 sku_id, store_id, "Perishable",
-                "Store Manager to decide between Markdown/Transfer/Dispose/Donate", path,
+                "Store Manager to decide between Markdown/Transfer/Dispose/Donate for expiry-risk SKU", path,
             )
 
         path.append("Step4: Shelf Life vs 7 days")

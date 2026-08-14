@@ -17,7 +17,7 @@ import streamlit as st
 from utils.data_loader import load_all
 from utils.dio_aggregation import add_dio_fields
 from utils.priority_labels import add_priority_label
-from utils.aggregations import summarize_root_causes, top_skus_by_dio_variance, actions_required_sku_count
+from utils.aggregations import summarize_root_causes, top_skus_by_dio_variance, actions_required_sku_count, add_shelf_life_display
 from components.styling import inject_base_css, persona_banner, brand_strip, PERSONA_COLORS, empty_state_message
 from components.kpi_strip import render_kpi_strip
 from components.charts import dio_variance_bar, actions_required_donut
@@ -76,11 +76,12 @@ if st.session_state.get(selected_group_key):
         group_skus = scoped[group_def["match"](scoped)]
         summary = summarize_root_causes(rca_long)
         group_skus = group_skus.merge(summary, on=["SKU_ID", "Store_ID"], how="left")
+        group_skus = add_shelf_life_display(group_skus)
 
         st.markdown("**SKUs in this task**")
         selected = render_table(
             group_skus[["SKU_ID", "SKU_Name", "Category", "Root_Cause_Summary",
-                        "Priority_Score", "Priority_Label", "Excess_Value",
+                        "Priority_Score", "Priority_Label", "Shelf_Life_Display", "Excess_Value",
                         "Store_Action_Recommendation"]],
             gbp_cols=["Excess_Value"], key="sm_task_detail_table", selectable=True,
         )
@@ -99,9 +100,10 @@ st.markdown("---")
 st.markdown('<div class="section-header">Action Queue — All SKUs, Sorted by Priority</div>', unsafe_allow_html=True)
 summary = summarize_root_causes(rca_long)
 queue = scoped.merge(summary, on=["SKU_ID", "Store_ID"], how="left")
+queue = add_shelf_life_display(queue)
 queue = queue[[
     "SKU_ID", "SKU_Name", "Category", "Root_Cause_Summary", "Priority_Score", "Priority_Label",
-    "Urgency_Score", "DIO", "Excess_Units", "Excess_Value", "Store_Action_Recommendation",
+    "Urgency_Score", "DIO", "Shelf_Life_Display", "Excess_Units", "Excess_Value", "Store_Action_Recommendation",
 ]].sort_values("Priority_Score", ascending=False)
 
 selected_from_queue = render_table(
