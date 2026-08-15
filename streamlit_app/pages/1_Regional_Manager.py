@@ -105,7 +105,7 @@ with c1:
     st.plotly_chart(problem_area_donut(problem_area_split(rca_scoped)), width="stretch")
 with c2:
     by_cat = rollup(scoped, "Category").sort_values("Excess_Value", ascending=False).head(8)
-    st.plotly_chart(ranked_bar(by_cat, "Excess_Value", "Category", "", color="#D97B0A"), width="stretch")
+    st.plotly_chart(ranked_bar(by_cat, "Excess_Value", "Category", "Top Categories by Excess Value", color="#D97B0A"), width="stretch")
 
 # ---- Top 10 SKUs by DIO Variance + Actions Required (new, per your approval) ----
 st.markdown('<div class="section-header">Top 10 SKUs by DIO Variance &amp; Actions Required</div>', unsafe_allow_html=True)

@@ -63,14 +63,18 @@ def ranked_bar(df: pd.DataFrame, x: str, y: str, title: str = "", horizontal: bo
     df = df.sort_values(x, ascending=horizontal)
 
     texttemplate = _currency_texttemplate() if currency else _plain_texttemplate()
+    # Passing title="" to px.bar() leaves layout.title.text as None, which
+    # rendered as the literal text "undefined" in the browser rather than
+    # no title at all. Explicitly pass None (never "") to px.bar's title arg.
+    px_title = title if title else None
 
     if horizontal:
-        fig = px.bar(df, x=x, y=y, orientation="h", title=title,
+        fig = px.bar(df, x=x, y=y, orientation="h", title=px_title,
                      color_discrete_sequence=[color], text=x)
         max_val = df[x].max()
         fig.update_xaxes(range=[0, max_val * 1.22])
     else:
-        fig = px.bar(df, x=y, y=x, title=title, color_discrete_sequence=[color], text=x)
+        fig = px.bar(df, x=y, y=x, title=px_title, color_discrete_sequence=[color], text=x)
     fig.update_traces(texttemplate=texttemplate, textposition="outside", cliponaxis=False)
     return _base_layout(fig)
 

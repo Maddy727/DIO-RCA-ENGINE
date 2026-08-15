@@ -69,6 +69,53 @@ def owner_accountability(corrective_action_long: pd.DataFrame, financial_by_sku_
     )
 
 
+def owner_scoped_sku_store_keys(corrective_action_long: pd.DataFrame, owner: str) -> pd.DataFrame:
+    """
+    Returns the DE-DUPLICATED set of (SKU_ID, Store_ID) pairs where the
+    given owner has at least one open root cause — "population scoping."
+
+    Used for KPI-strip-level and region/store rollup numbers. NOT additive
+    across owners: a SKU-Store with causes owned by 2 different people
+    will appear in BOTH owners' scoped population, each showing its full
+    Excess Value. That's intentional (both owners genuinely have an open
+    action there) — it just means summing every owner's KPI total will
+    overcount versus the true enterprise-wide Excess Value. Confirmed on
+    the real data (2026-08-14): 9,079 of 20,084 SKU-Stores have causes
+    split across multiple different owners, so this overlap is the norm,
+    not an edge case.
+    """
+    owned = corrective_action_long[corrective_action_long["Action_Owner"] == owner]
+    return owned[["SKU_ID", "Store_ID"]].drop_duplicates()
+
+
+def owner_action_items(corrective_action_long: pd.DataFrame, master: pd.DataFrame,
+                        financial: pd.DataFrame, wide_with_priority: pd.DataFrame, owner: str) -> pd.DataFrame:
+    """
+    Root-cause-grain action item list for one owner — one row per actual
+    action, never merged across root causes (matches the same "never merge
+    RCA records" principle used throughout the rest of the app). Excess_Value
+    is SKU-Store-level context attached to every row, NOT a per-action
+    amount — if the same owner has 2+ causes on the same SKU-Store, the
+    same Excess_Value will appear on 2+ rows. Callers must not sum this
+    column; show it for context only (matches the RCA Details tab's
+    existing "shown separately, never merged" convention).
+    """
+    owned = corrective_action_long[corrective_action_long["Action_Owner"] == owner].copy()
+    owned = owned.merge(
+        master[["SKU_ID", "Store_ID", "SKU_Name", "Category", "Store_Name", "Region"]],
+        on=["SKU_ID", "Store_ID"], how="left",
+    )
+    owned = owned.merge(
+        financial[["SKU_ID", "Store_ID", "Excess_Value"]],
+        on=["SKU_ID", "Store_ID"], how="left",
+    )
+    owned = owned.merge(
+        wide_with_priority[["SKU_ID", "Store_ID", "Priority_Score", "Priority_Label"]].drop_duplicates(subset=["SKU_ID", "Store_ID"]),
+        on=["SKU_ID", "Store_ID"], how="left",
+    )
+    return owned
+
+
 def category_x_problem_area(rca_long: pd.DataFrame, master: pd.DataFrame) -> pd.DataFrame:
     """
     Pivot: Category (rows) x Problem Area (columns), cell = COUNT OF UNIQUE
