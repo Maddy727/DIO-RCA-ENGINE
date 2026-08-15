@@ -56,10 +56,18 @@ if filtered.empty:
     empty_state_message()
     st.stop()
 
+# "Requiring intervention" = the same population the Priority module itself
+# scores (Priority_Score populated), i.e. NOT "No Action Required" — the
+# identical definition used everywhere else in the app (e.g. Store
+# Manager's Action Queue, the Owner Action Center). Previously these 3
+# KPIs incorrectly used the full filtered population regardless of
+# whether each row actually needed intervention (bug found 2026-08-15).
+intervention_required = filtered[filtered["Priority_Score"].notna()]
+
 extra_kpis = [
-    ("SKU-Stores Requiring Intervention", f"{len(filtered):,}", None),
-    ("Stores with DIO Issue", f"{filtered['Store_ID'].nunique():,}", None),
-    ("Categories with DIO Issue", f"{filtered['Category'].nunique():,}", None),
+    ("SKU-Stores Requiring Intervention", f"{intervention_required['SKU_ID'].count():,}", None),
+    ("Stores with DIO Issue", f"{intervention_required['Store_ID'].nunique():,}", None),
+    ("Categories with DIO Issue", f"{intervention_required['Category'].nunique():,}", None),
 ]
 render_kpi_strip(filtered, extra_kpis=extra_kpis)
 

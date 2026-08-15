@@ -70,8 +70,8 @@ def render_sku_detail(sku_id: str, store_id: str, wide: pd.DataFrame,
         c3.metric("Remaining Shelf Life", shelf_life_str, delta="Act now", delta_color="inverse")
     else:
         c3.metric("Remaining Shelf Life", shelf_life_str)
-    c4.metric("Current Stock", f"{row['Current_Stock_Units']:,.0f} units")
-    c5.metric("Excess Units", f"{row['Excess_Units']:,.0f} units")
+    c4.metric("Current Stock Units", f"{row['Current_Stock_Units']:,.0f}")
+    c5.metric("Excess Units", f"{row['Excess_Units']:,.0f}")
     c6.metric("Excess Value", format_gbp(row["Excess_Value"]))
 
     tab_rca, tab_actions, tab_priority = st.tabs(["RCA Details", "Actions", "Priority"])
