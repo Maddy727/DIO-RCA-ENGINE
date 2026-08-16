@@ -149,24 +149,27 @@ def inject_base_css():
             font-weight: 500;
         }}
 
-        /* --- KPI cards: dark-blue border, very light-blue fill, high-contrast text --- */
+        /* --- KPI cards: cream fill + colored left-edge accent bar
+             (Design_Inspiration-10) — replaces the earlier blue-border/
+             light-blue-fill version, which didn't look good enough */
         .kpi-card {{
-            background: #F3F8FE;
-            border: 2px solid #00457C;
-            border-radius: 12px;
+            background: #FFFBEF;
+            border: 1px solid #F0E6D2;
+            border-left: 4px solid #D9A441;
+            border-radius: 10px;
             padding: 16px 18px;
             box-shadow: 0 1px 3px rgba(16,24,40,0.06);
             transition: box-shadow 0.15s ease;
         }}
         .kpi-card.kpi-primary {{
-            border: 2px solid #00457C;
+            border-left: 4px solid #D9A441;
         }}
         .kpi-label {{
             font-size: 11.5px;
             font-weight: 700;
             letter-spacing: 0.04em;
             text-transform: uppercase;
-            color: #2C5C86;
+            color: #8A7F6B;
             margin-bottom: 6px;
         }}
         .kpi-value {{
@@ -178,7 +181,7 @@ def inject_base_css():
         }}
         .kpi-sub {{
             font-size: 12px;
-            color: #5A7C9C;
+            color: #A89B85;
             margin-top: 4px;
         }}
 
