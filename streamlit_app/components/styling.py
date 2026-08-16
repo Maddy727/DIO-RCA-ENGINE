@@ -149,36 +149,36 @@ def inject_base_css():
             font-weight: 500;
         }}
 
-        /* --- KPI cards --- */
+        /* --- KPI cards: dark-blue border, very light-blue fill, high-contrast text --- */
         .kpi-card {{
-            background: #FFFFFF;
-            border: 1px solid #E4E7EC;
+            background: #F3F8FE;
+            border: 2px solid #00457C;
             border-radius: 12px;
             padding: 16px 18px;
             box-shadow: 0 1px 3px rgba(16,24,40,0.06);
             transition: box-shadow 0.15s ease;
         }}
         .kpi-card.kpi-primary {{
-            border-top: 3px solid #0B5AA8;
+            border: 2px solid #00457C;
         }}
         .kpi-label {{
             font-size: 11.5px;
             font-weight: 700;
             letter-spacing: 0.04em;
             text-transform: uppercase;
-            color: #667085;
+            color: #2C5C86;
             margin-bottom: 6px;
         }}
         .kpi-value {{
             font-size: 27px;
             font-weight: 800;
-            color: #101828;
+            color: #00304F;
             line-height: 1.1;
             letter-spacing: -0.02em;
         }}
         .kpi-sub {{
             font-size: 12px;
-            color: #98A2B3;
+            color: #5A7C9C;
             margin-top: 4px;
         }}
 
@@ -283,6 +283,26 @@ def inject_base_css():
             color: #667085;
             font-size: 14px;
             font-weight: 500;
+        }}
+
+        /* --- Sidebar: force the Tesco header (in stSidebarUserContent)
+             ABOVE the auto-generated page nav (stSidebarNav), via CSS
+             flexbox order — Streamlit's st.navigation() nav list renders
+             as a fixed-position sibling regardless of Python code order,
+             so this can't be fixed by simply calling sidebar_nav_header()
+             earlier in app.py. Relies on Streamlit's data-testid
+             attributes, which are more stable than raw class names but
+             are still an internal implementation detail, not part of the
+             official public API — flagged and accepted as a known risk. */
+        [data-testid="stSidebarContent"] {{
+            display: flex;
+            flex-direction: column;
+        }}
+        [data-testid="stSidebarNav"] {{
+            order: 2;
+        }}
+        [data-testid="stSidebarUserContent"] {{
+            order: 1;
         }}
         </style>
         """,

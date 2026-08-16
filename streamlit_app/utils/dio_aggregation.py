@@ -122,7 +122,10 @@ def rollup(df: pd.DataFrame, group_by: str | list[str] | None = None) -> pd.Data
         })
 
     if group_by is None:
-        return _agg(df).to_frame().T
+        result = _agg(df).to_frame().T
+        result["SKU_Store_Count"] = result["SKU_Store_Count"].astype(int)
+        return result
 
     result = df.groupby(group_by, dropna=False).apply(_agg, include_groups=False).reset_index()
+    result["SKU_Store_Count"] = result["SKU_Store_Count"].astype(int)
     return result

@@ -69,7 +69,7 @@ c1, c2 = st.columns(2)
 with c1:
     st.plotly_chart(ranked_bar(by_category, "Inventory_Value", "Category", "Inventory Value by Category"), width="stretch")
 with c2:
-    st.plotly_chart(ranked_bar(by_category, "Excess_Value", "Category", "Excess Value by Category", color="#C81E3A"), width="stretch")
+    st.plotly_chart(ranked_bar(by_category, "Excess_Value", "Category", "Excess Value by Category", color="#D97B0A"), width="stretch")
 
 st.markdown('<div class="section-header">RCA Problem Area &amp; Corrective Action Ownership</div>',
             unsafe_allow_html=True)
@@ -119,12 +119,6 @@ else:
         corrective_action_long=corrective_action_long,
         levels=["Region", "Store", "SKU"], root_label=f"Category: {category}",
     )
-
-st.markdown("---")
-st.caption(
-    "Store-level ranking is intentionally not shown until you drill into a category, "
-    "per the CSCO's strategic (not store-operational) view."
-)
 
 # ---- Action Owner View — for Central team members to find their assigned actions ----
 st.markdown("---")

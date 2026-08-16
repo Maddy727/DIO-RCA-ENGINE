@@ -89,8 +89,8 @@ st.markdown('<div style="height:14px;"></div>', unsafe_allow_html=True)
 c1, c2 = st.columns(2)
 with c1:
     st.plotly_chart(
-        dio_variance_bar(store_table_capped, "Store_Name", title="Store DIO Ranking", top_n=None,
-                          metric_col="DIO", allow_negative_color=False),
+        dio_variance_bar(store_table_capped, "Store_Name", title="Store vs DIO Variance", top_n=None,
+                          metric_col="DIO_Variance"),
         width="stretch",
     )
 with c2:

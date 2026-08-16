@@ -8,9 +8,10 @@ Value | Excess Inventory Value, followed by any page-specific extra KPIs
 Manager's and CSCO's explicit request — "SKUs Requiring Action" /
 "SKU-Stores Assigned" no longer sits alone in its own sparse row).
 
-This is now the single layout used by all four pages — Enterprise's 3
-extras and Regional's 2 extras naturally fall in behind the same Row 2
-pattern without needing page-specific special-casing.
+Enterprise Control Tower is the ONE confirmed exception (2026-08-15):
+that page alone reverts to the original 5-then-3 layout (all 5 common
+cards in row 1, its 3 extra KPIs in row 2) via five_in_first_row=True —
+you were clear this should NOT apply to the other 3 pages.
 """
 from __future__ import annotations
 
@@ -21,32 +22,41 @@ from utils.dio_aggregation import rollup
 from components.styling import format_gbp, format_days, format_variance_days
 
 
-def render_kpi_strip(scoped_df: pd.DataFrame, extra_kpis: list[tuple[str, str, str]] | None = None):
+def render_kpi_strip(scoped_df: pd.DataFrame, extra_kpis: list[tuple[str, str, str]] | None = None,
+                      five_in_first_row: bool = False):
     """
     scoped_df: a DIO-field-enriched wide dataframe already filtered to the
     scope this page/level represents (enterprise-wide, one region, one
     store, or a filtered slice).
     extra_kpis: optional list of (label, value, sub) tuples for
-    persona-specific cards, appended after Total/Excess Inventory Value
-    on row 2.
+    persona-specific cards, appended after Total/Excess Inventory Value.
+    five_in_first_row: Enterprise-only override — puts all 5 common cards
+    in row 1 and only extra_kpis in row 2, instead of the 3-then-rest
+    layout used everywhere else.
     """
     agg = rollup(scoped_df).iloc[0]
 
-    row1 = [
+    dio_cards = [
         ("DIO", format_days(agg["DIO"]), "value-weighted"),
         ("DIO Target", format_days(agg["DIO_Target"]), "value-weighted"),
         ("DIO Variance", format_variance_days(agg["DIO_Variance"]), "vs target"),
     ]
-    row2 = [
+    value_cards = [
         ("Total Inventory Value", format_gbp(agg["Inventory_Value"]), None),
         ("Excess Inventory Value", format_gbp(agg["Excess_Value"]), None),
     ]
-    if extra_kpis:
-        row2 = row2 + extra_kpis
+
+    if five_in_first_row:
+        row1 = dio_cards + value_cards
+        row2 = extra_kpis or []
+    else:
+        row1 = dio_cards
+        row2 = value_cards + (extra_kpis or [])
 
     _render_row(row1, primary=True)
-    st.markdown('<div style="height:10px;"></div>', unsafe_allow_html=True)
-    _render_row(row2, primary=True)
+    if row2:
+        st.markdown('<div style="height:10px;"></div>', unsafe_allow_html=True)
+        _render_row(row2, primary=True)
 
 
 def _render_row(cards: list[tuple[str, str, str]], primary: bool = False):

@@ -69,7 +69,7 @@ extra_kpis = [
     ("Stores with DIO Issue", f"{intervention_required['Store_ID'].nunique():,}", None),
     ("Categories with DIO Issue", f"{intervention_required['Category'].nunique():,}", None),
 ]
-render_kpi_strip(filtered, extra_kpis=extra_kpis)
+render_kpi_strip(filtered, extra_kpis=extra_kpis, five_in_first_row=True)
 
 # ---- A. DIO Variance by Store ----
 st.markdown('<div class="section-header">DIO Variance by Store</div>', unsafe_allow_html=True)
@@ -94,7 +94,7 @@ with c1:
     st.plotly_chart(dio_variance_bar(store_table_capped, "Store_Name", title="DIO Variance by Store", top_n=None), width="stretch")
 with c2:
     st.plotly_chart(
-        ranked_bar(store_table_capped, "Excess_Value", "Store_Name", "Excess Value by Store", color="#C81E3A"),
+        ranked_bar(store_table_capped, "Excess_Value", "Store_Name", "Excess Value by Store", color="#D97B0A"),
         width="stretch",
     )
 
@@ -116,7 +116,7 @@ with c1:
     st.plotly_chart(dio_variance_bar(cat_table, "Category", title="DIO Variance by Category", top_n=None), width="stretch")
 with c2:
     st.plotly_chart(
-        ranked_bar(cat_table, "Excess_Value", "Category", "Excess Value by Categories", color="#C81E3A"),
+        ranked_bar(cat_table, "Excess_Value", "Category", "Excess Value by Categories", color="#D97B0A"),
         width="stretch",
     )
 
