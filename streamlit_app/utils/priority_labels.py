@@ -32,6 +32,20 @@ LABEL_COLORS = {
     "Not Scored": "#C4CAD4",
 }
 
+# Table-cell TEXT colors specifically (confirmed 2026-08-15, distinct from
+# the badge/dot colors above — used by tables.py's style_priority_column).
+# "High" is Blue here per your instruction, distinct from LABEL_COLORS'
+# amber-ish "High" used for badges elsewhere — table text and badges are
+# allowed to differ since you specified them separately.
+TABLE_TEXT_COLORS = {
+    "Emergency": "#C81E3A",   # red
+    "Urgent": "#D97B0A",      # amber
+    "High": "#0B5AA8",        # blue
+    "Medium": "#5A6472",      # dark grey
+    "Low": "#A0A7B2",         # light grey
+    "Not Scored": None,       # no color
+}
+
 LABEL_ORDER = ["Emergency", "Urgent", "High", "Medium", "Low"]
 
 

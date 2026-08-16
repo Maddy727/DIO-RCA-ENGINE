@@ -14,7 +14,7 @@ from utils.data_loader import load_all
 from utils.dio_aggregation import add_dio_fields, rollup
 from utils.priority_labels import add_priority_label
 from utils.aggregations import problem_area_split, top_skus_by_dio_variance, actions_required_sku_count
-from components.styling import inject_base_css, persona_banner, brand_strip, PERSONA_COLORS, empty_state_message
+from components.styling import inject_base_css, persona_banner, brand_strip, PERSONA_COLORS, empty_state_message, dio_variance_color
 from components.kpi_strip import render_kpi_strip
 from components.charts import dio_variance_bar, ranked_bar, problem_area_donut, actions_required_donut
 from components.filters import render_filter_panel
@@ -68,24 +68,36 @@ by_store = rollup(scoped, "Store_ID").merge(
     wide[["Store_ID", "Store_Name"]].drop_duplicates(), on="Store_ID", how="left"
 )
 top_n = see_more_toggle("rm_store_dio", default_n=10)
-c1, c2 = st.columns([3, 2])
+
+priority_counts = (
+    scoped.groupby("Store_Name")["Priority_Label"]
+    .apply(lambda s: (s.isin(["Emergency", "Urgent"])).sum())
+    .reset_index(name="High_Priority_Actions")
+)
+store_table = by_store.merge(priority_counts, on="Store_Name", how="left")
+store_table_full = add_rank_column(store_table, "DIO", ascending=False)
+store_table_capped = store_table_full.head(top_n) if top_n else store_table_full
+
+render_table(
+    store_table_capped[["Rank", "Store_Name", "DIO", "DIO_Target", "DIO_Variance", "Excess_Value",
+                         "SKU_Store_Count", "High_Priority_Actions"]],
+    gbp_cols=["Excess_Value"], day_cols=["DIO", "DIO_Target", "DIO_Variance"], height=340,
+    text_color_cols={"DIO_Variance": dio_variance_color},
+)
+
+st.markdown('<div style="height:14px;"></div>', unsafe_allow_html=True)
+c1, c2 = st.columns(2)
 with c1:
     st.plotly_chart(
-        dio_variance_bar(by_store, "Store_Name", top_n=top_n, metric_col="DIO", allow_negative_color=False),
+        dio_variance_bar(store_table_capped, "Store_Name", title="Store DIO Ranking", top_n=None,
+                          metric_col="DIO", allow_negative_color=False),
         width="stretch",
     )
 with c2:
-    priority_counts = (
-        scoped.groupby("Store_Name")["Priority_Label"]
-        .apply(lambda s: (s.isin(["Emergency", "Urgent"])).sum())
-        .reset_index(name="High_Priority_Actions")
-    )
-    store_table = by_store.merge(priority_counts, on="Store_Name", how="left")
-    store_table = add_rank_column(store_table, "DIO", ascending=False)
-    render_table(
-        store_table[["Rank", "Store_Name", "DIO", "DIO_Target", "DIO_Variance", "Excess_Value",
-                     "SKU_Store_Count", "High_Priority_Actions"]],
-        gbp_cols=["Excess_Value"], day_cols=["DIO", "DIO_Target", "DIO_Variance"], height=340,
+    by_cat_variance = rollup(scoped, "Category")
+    st.plotly_chart(
+        dio_variance_bar(by_cat_variance, "Category", title="Categories vs DIO Variance", top_n=None),
+        width="stretch",
     )
 
 # ---- Inventory Value & Excess Value by Store ----
@@ -108,14 +120,14 @@ with c2:
     st.plotly_chart(ranked_bar(by_cat, "Excess_Value", "Category", "Top Categories by Excess Value", color="#D97B0A"), width="stretch")
 
 # ---- Top 10 SKUs by DIO Variance + Actions Required (new, per your approval) ----
-st.markdown('<div class="section-header">Top 10 SKUs by DIO Variance &amp; Actions Required</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-header">SKUs by DIO Variance &amp; Actions Required</div>', unsafe_allow_html=True)
 c1, c2 = st.columns(2)
 with c1:
     top_skus = top_skus_by_dio_variance(scoped, 10)
     if top_skus.empty:
         empty_state_message()
     else:
-        st.plotly_chart(dio_variance_bar(top_skus, "SKU_Name", top_n=None), width="stretch")
+        st.plotly_chart(dio_variance_bar(top_skus, "SKU_Name", title="Top 10 SKUs – DIO Variance", top_n=None), width="stretch")
 with c2:
     actions = actions_required_sku_count(scoped)
     if actions.empty:

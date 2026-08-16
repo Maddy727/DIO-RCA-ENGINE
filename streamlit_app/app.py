@@ -8,6 +8,11 @@ derives it from this file's name) with "Command Centre".
 """
 import streamlit as st
 
+from components.styling import inject_base_css, sidebar_nav_header
+
+inject_base_css()
+sidebar_nav_header()
+
 pg = st.navigation([
     st.Page("views/enterprise.py", title="Command Centre", icon="🏢", default=True),
     st.Page("pages/1_Regional_Manager.py", title="Regional Manager", icon="🌍"),

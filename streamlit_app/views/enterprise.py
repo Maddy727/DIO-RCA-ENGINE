@@ -21,7 +21,7 @@ from utils.data_loader import load_all
 from utils.dio_aggregation import add_dio_fields, rollup
 from utils.priority_labels import add_priority_label
 from utils.aggregations import problem_area_split, owner_accountability
-from components.styling import inject_base_css, persona_banner, brand_strip, format_gbp, PERSONA_COLORS, empty_state_message
+from components.styling import inject_base_css, persona_banner, brand_strip, format_gbp, PERSONA_COLORS, empty_state_message, dio_variance_color
 from components.kpi_strip import render_kpi_strip
 from components.charts import dio_variance_bar, ranked_bar, problem_area_donut
 from components.filters import render_filter_panel
@@ -78,31 +78,46 @@ by_store = rollup(filtered, "Store_ID").merge(
     wide[["Store_ID", "Store_Name"]].drop_duplicates(), on="Store_ID", how="left"
 )
 top_n = see_more_toggle("ent_store_dio", default_n=10)
-c1, c2 = st.columns([3, 2])
+store_table_full = add_rank_column(by_store, "DIO_Variance", ascending=False)
+store_table_capped = store_table_full.head(top_n) if top_n else store_table_full
+
+render_table(
+    store_table_capped[["Rank", "Store_Name", "DIO", "DIO_Target", "DIO_Variance", "Inventory_Value",
+                         "Excess_Value", "SKU_Store_Count"]],
+    gbp_cols=["Inventory_Value", "Excess_Value"], day_cols=["DIO", "DIO_Target", "DIO_Variance"],
+    height=340, text_color_cols={"DIO_Variance": dio_variance_color},
+)
+
+st.markdown('<div style="height:14px;"></div>', unsafe_allow_html=True)
+c1, c2 = st.columns(2)
 with c1:
-    st.plotly_chart(dio_variance_bar(by_store, "Store_Name", top_n=top_n), width="stretch")
+    st.plotly_chart(dio_variance_bar(store_table_capped, "Store_Name", title="DIO Variance by Store", top_n=None), width="stretch")
 with c2:
-    store_table = add_rank_column(by_store, "DIO_Variance", ascending=False)
-    render_table(
-        store_table[["Rank", "Store_Name", "DIO", "DIO_Target", "DIO_Variance", "Inventory_Value",
-                     "Excess_Value", "SKU_Store_Count"]],
-        gbp_cols=["Inventory_Value", "Excess_Value"], day_cols=["DIO", "DIO_Target", "DIO_Variance"],
-        height=340,
+    st.plotly_chart(
+        ranked_bar(store_table_capped, "Excess_Value", "Store_Name", "Excess Value by Store", color="#C81E3A"),
+        width="stretch",
     )
 
 # ---- B. DIO Variance by Category ----
 st.markdown('<div class="section-header">DIO Variance by Category</div>', unsafe_allow_html=True)
 by_category = rollup(filtered, "Category")
-c1, c2 = st.columns([3, 2])
+cat_table = add_rank_column(by_category, "DIO_Variance", ascending=False)
+
+render_table(
+    cat_table[["Rank", "Category", "DIO", "DIO_Target", "DIO_Variance", "Inventory_Value",
+               "Excess_Value", "SKU_Store_Count"]],
+    gbp_cols=["Inventory_Value", "Excess_Value"], day_cols=["DIO", "DIO_Target", "DIO_Variance"],
+    height=340, text_color_cols={"DIO_Variance": dio_variance_color},
+)
+
+st.markdown('<div style="height:14px;"></div>', unsafe_allow_html=True)
+c1, c2 = st.columns(2)
 with c1:
-    st.plotly_chart(dio_variance_bar(by_category, "Category", top_n=None), width="stretch")
+    st.plotly_chart(dio_variance_bar(cat_table, "Category", title="DIO Variance by Category", top_n=None), width="stretch")
 with c2:
-    cat_table = add_rank_column(by_category, "DIO_Variance", ascending=False)
-    render_table(
-        cat_table[["Rank", "Category", "DIO", "DIO_Target", "DIO_Variance", "Inventory_Value",
-                   "Excess_Value", "SKU_Store_Count"]],
-        gbp_cols=["Inventory_Value", "Excess_Value"], day_cols=["DIO", "DIO_Target", "DIO_Variance"],
-        height=340,
+    st.plotly_chart(
+        ranked_bar(cat_table, "Excess_Value", "Category", "Excess Value by Categories", color="#C81E3A"),
+        width="stretch",
     )
 
 # ---- C/D. Inventory Value & Excess Value by Category ----

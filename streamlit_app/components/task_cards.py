@@ -163,14 +163,7 @@ def render_fyi_strip(scoped_wide: pd.DataFrame, corrective_action_long: pd.DataF
         .sort_values("Excess_Value", ascending=False)
     )
 
-    st.markdown(
-        f"""
-        <div class="fyi-strip">
-            <div class="fyi-title">For Visibility — Not Your Action</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.markdown('<div class="section-header">For Visibility — Not Your Action</div>', unsafe_allow_html=True)
     st.caption(
         "These SKUs also have open issues, but the corrective action belongs to central "
         "planning roles, not the Store Manager."

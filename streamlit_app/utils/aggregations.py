@@ -175,7 +175,7 @@ def dashboard_view_filter(corrective_action_long: pd.DataFrame, view: str) -> pd
 
 def add_shelf_life_display(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Adds a 'Shelf_Life_Display' text column: 'N/A' for non-perishable rows
+    Adds a 'Shelf_Life_Display' text column: '-' for non-perishable rows
     (S22 carries a 999 sentinel there — never shown as a real day count),
     'Expired (Xd)' for already-expired stock, 'Xd' otherwise. Presentation
     only — does not touch S22_Shelf_Life_Remaining_Days itself, so the
@@ -189,4 +189,29 @@ def add_shelf_life_display(df: pd.DataFrame) -> pd.DataFrame:
         lambda r: format_shelf_life(r.get("S22_Shelf_Life_Remaining_Days"), r.get("S21_Is_Perishable")),
         axis=1,
     )
+    return out
+
+
+def add_shelf_life_sortable(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds a NUMERIC 'Shelf_Life_Sortable' column — the same underlying
+    S22_Shelf_Life_Remaining_Days value, with the 999 non-perishable
+    sentinel replaced by NaN — for use in tables where the column must be
+    genuinely click-to-sort (Streamlit's dataframe sort operates on the
+    raw stored value; a formatted TEXT column like Shelf_Life_Display
+    sorts alphabetically, which is wrong for numbers — that's the exact
+    bug this fixes).
+
+    Trade-off, confirmed with you 2026-08-15: a numeric column can't also
+    carry the custom "Expired (Xd)" / "-" wording used in
+    Shelf_Life_Display — Streamlit's column_config format strings can't
+    conditionally branch. Displayed via NumberColumn format "%.1fd" (see
+    tables.py usage), so an expired row shows as e.g. "-2.0d" instead of
+    "Expired (-2.0d)", and non-perishable rows render as a blank cell
+    instead of "-". The negative sign still makes "already expired"
+    visually obvious even without the word.
+    """
+    out = df.copy()
+    slr = out["S22_Shelf_Life_Remaining_Days"]
+    out["Shelf_Life_Sortable"] = slr.where(slr < 999)
     return out

@@ -83,14 +83,14 @@ with c2:
     st.plotly_chart(ranked_bar(owners, "Excess_Value", "Action_Owner", "Excess Value by Action Owner", color="#1B6B3A"), width="stretch")
 
 # ---- Top 10 SKUs by DIO Variance + Actions Required (new, per your approval) ----
-st.markdown('<div class="section-header">Top 10 SKUs by DIO Variance &amp; Actions Required</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-header">SKUs by DIO Variance &amp; Actions Required</div>', unsafe_allow_html=True)
 c1, c2 = st.columns(2)
 with c1:
     top_skus = top_skus_by_dio_variance(filtered, 10)
     if top_skus.empty:
         empty_state_message()
     else:
-        st.plotly_chart(dio_variance_bar(top_skus, "SKU_Name", top_n=None), width="stretch")
+        st.plotly_chart(dio_variance_bar(top_skus, "SKU_Name", title="Top 10 SKUs – DIO Variance", top_n=None), width="stretch")
 with c2:
     actions = actions_required_sku_count(filtered)
     if actions.empty:

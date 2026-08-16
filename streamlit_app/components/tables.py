@@ -42,6 +42,7 @@ FRIENDLY_LABELS = {
     "Store_Action_Recommendation": "Store Action",
     "S22_Shelf_Life_Remaining_Days": "Remaining Shelf Life",
     "Shelf_Life_Display": "Remaining Shelf Life",
+    "Shelf_Life_Sortable": "Remaining Shelf Life",
     "Current_Stock_Units": "Current Stock",
     "Target_Stock_Units": "Target Stock",
     "Rank": "Rank",
@@ -51,11 +52,19 @@ FRIENDLY_LABELS = {
 def render_table(df: pd.DataFrame, gbp_cols: list[str] | None = None,
                   day_cols: list[str] | None = None, key: str | None = None,
                   selectable: bool = False, rename: bool = True,
-                  height: int | None = None):
+                  height: int | None = None,
+                  text_color_cols: dict[str, callable] | None = None):
     """
     Renders a dataframe with £ / day formatting applied via column_config
     (keeps underlying values numeric, so header-click sorting is correct
     numerically, not alphabetically) and client-friendly column headers.
+
+    text_color_cols: optional {column_name: value_to_color_fn} mapping —
+    applies bold, colored TEXT to cells in that column via a pandas
+    Styler (e.g. Priority_Label -> priority color, DIO_Variance -> severity
+    color), confirmed 2026-08-15. value_to_color_fn(cell_value) should
+    return a hex color string or None (None = no styling applied). Tested
+    to coexist correctly with column_config formatting and row-selection.
 
     If selectable=True, returns the selected row (from the ORIGINAL,
     unrenamed df) via st.dataframe's built-in row-selection.
@@ -88,13 +97,27 @@ def render_table(df: pd.DataFrame, gbp_cols: list[str] | None = None,
     if height:
         kwargs["height"] = height
 
+    render_target = display_df
+    if text_color_cols:
+        styler = display_df.style
+        for col, color_fn in text_color_cols.items():
+            if col not in display_df.columns:
+                continue
+
+            def _style(val, _fn=color_fn):
+                color = _fn(val)
+                return f"color: {color}; font-weight: 700;" if color else ""
+
+            styler = styler.map(_style, subset=[col])
+        render_target = styler
+
     if selectable:
-        event = st.dataframe(display_df, on_select="rerun", selection_mode="single-row", **kwargs)
+        event = st.dataframe(render_target, on_select="rerun", selection_mode="single-row", **kwargs)
         if event.selection and event.selection.get("rows"):
             return df.iloc[event.selection["rows"][0]]
         return None
 
-    st.dataframe(display_df, **kwargs)
+    st.dataframe(render_target, **kwargs)
     return None
 
 

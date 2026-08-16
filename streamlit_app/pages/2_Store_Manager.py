@@ -17,7 +17,11 @@ import streamlit as st
 from utils.data_loader import load_all
 from utils.dio_aggregation import add_dio_fields
 from utils.priority_labels import add_priority_label
-from utils.aggregations import summarize_root_causes, top_skus_by_dio_variance, actions_required_sku_count, add_shelf_life_display
+from utils.aggregations import (
+    summarize_root_causes, top_skus_by_dio_variance, actions_required_sku_count,
+    add_shelf_life_display, add_shelf_life_sortable,
+)
+from utils.priority_labels import TABLE_TEXT_COLORS
 from components.styling import inject_base_css, persona_banner, brand_strip, PERSONA_COLORS, empty_state_message
 from components.kpi_strip import render_kpi_strip
 from components.charts import dio_variance_bar, actions_required_donut
@@ -43,9 +47,14 @@ corrective_action_long = data["corrective_action_long"]
 
 persona_banner("🏪 Store Manager", "What do I need to do today?", PERSONA_COLORS["store"])
 
-stores = sorted(wide["Store_Name"].dropna().unique().tolist())
+# Region filter takes precedence, then Store (per your instruction #1)
+regions = sorted(wide["Region"].dropna().unique().tolist())
+region = st.selectbox("Region", regions, key="sm_region")
+region_scoped = wide[wide["Region"] == region]
+
+stores = sorted(region_scoped["Store_Name"].dropna().unique().tolist())
 store_name = st.selectbox("Store", stores, key="sm_store")
-store_scoped = wide[wide["Store_Name"] == store_name]
+store_scoped = region_scoped[region_scoped["Store_Name"] == store_name]
 
 scoped = render_filter_panel(store_scoped, key_prefix="sm")
 
@@ -100,14 +109,15 @@ st.markdown("---")
 st.markdown('<div class="section-header">Action Queue — All SKUs, Sorted by Priority</div>', unsafe_allow_html=True)
 summary = summarize_root_causes(rca_long)
 queue = scoped.merge(summary, on=["SKU_ID", "Store_ID"], how="left")
-queue = add_shelf_life_display(queue)
+queue = add_shelf_life_sortable(queue)
 queue = queue[[
     "SKU_ID", "SKU_Name", "Category", "Root_Cause_Summary", "Priority_Score", "Priority_Label",
-    "Urgency_Score", "DIO", "Shelf_Life_Display", "Excess_Units", "Excess_Value", "Store_Action_Recommendation",
+    "Urgency_Score", "DIO", "Shelf_Life_Sortable", "Excess_Units", "Excess_Value", "Store_Action_Recommendation",
 ]].sort_values("Priority_Score", ascending=False)
 
 selected_from_queue = render_table(
-    queue, gbp_cols=["Excess_Value"], day_cols=["DIO"], key="sm_action_queue", selectable=True,
+    queue, gbp_cols=["Excess_Value"], day_cols=["DIO", "Shelf_Life_Sortable"], key="sm_action_queue",
+    selectable=True, text_color_cols={"Priority_Label": lambda v: TABLE_TEXT_COLORS.get(v)},
 )
 if selected_from_queue is not None:
     st.markdown("---")
@@ -115,14 +125,14 @@ if selected_from_queue is not None:
     render_sku_detail(selected_from_queue["SKU_ID"], store_id, wide, rca_long, corrective_action_long)
 
 # ---- Supporting information: Top 10 SKUs by DIO Variance + Actions Required (new, per your approval) ----
-st.markdown('<div class="section-header">Top 10 SKUs by DIO Variance &amp; Actions Required</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-header">SKUs by DIO Variance &amp; Actions Required</div>', unsafe_allow_html=True)
 c1, c2 = st.columns(2)
 with c1:
     top_skus = top_skus_by_dio_variance(scoped, 10)
     if top_skus.empty:
         empty_state_message()
     else:
-        st.plotly_chart(dio_variance_bar(top_skus, "SKU_Name", top_n=None), width="stretch")
+        st.plotly_chart(dio_variance_bar(top_skus, "SKU_Name", title="Top 10 SKUs – DIO Variance", top_n=None), width="stretch")
 with c2:
     actions = actions_required_sku_count(scoped)
     if actions.empty:

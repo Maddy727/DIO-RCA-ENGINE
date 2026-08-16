@@ -7,14 +7,20 @@ business logic — presentation only.
 """
 from __future__ import annotations
 
+import pandas as pd
 import streamlit as st
 
 PERSONA_COLORS = {
     "enterprise": "#1B2A4A",   # deep navy — control tower / neutral executive
     "regional": "#B36A00",     # amber/orange
-    "store": "#0B5AA8",        # blue
+    "store": "#00457C",        # dark blue, matching Design_Inspiration-7 (was lighter #0B5AA8)
     "csco": "#1B6B3A",         # green
 }
+
+# Dark blue used for the section-header "pill" boxes (Design_Inspiration-8)
+# and Store Manager's banner (Design_Inspiration-7) — one shared constant
+# so both stay visually consistent with each other.
+TESCO_DARK_BLUE = "#00457C"
 
 # Vibrant-but-professional chart palette, used consistently across all
 # charts rather than random per-chart color assignment (per instruction #19).
@@ -91,6 +97,22 @@ def format_count(value) -> str:
     return f"{value:,.0f}"
 
 
+def dio_variance_color(value: float) -> str | None:
+    """
+    Table-cell text color for a DIO Variance value, confirmed 2026-08-15:
+      >= 10 days  -> red   (bold)
+      0 < x < 10  -> amber (bold)
+      <= 0 days   -> green (bold)
+    """
+    if value is None or pd.isna(value):
+        return None
+    if value >= 10:
+        return "#C81E3A"
+    if value > 0:
+        return "#D97B0A"
+    return "#1B6B3A"
+
+
 def inject_base_css():
     st.markdown(
         f"""
@@ -160,15 +182,19 @@ def inject_base_css():
             margin-top: 4px;
         }}
 
-        /* --- Section headers --- */
+        /* --- Section headers: blue "pill" boxes (Design_Inspiration-8) --- */
         .section-header {{
-            font-size: 16px;
-            font-weight: 800;
-            color: #101828;
+            display: inline-block;
+            background: #00457C;
+            color: #FFFFFF;
+            font-size: 12.5px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            padding: 9px 18px;
+            border-radius: 8px;
             margin: 26px 0 12px 0;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #E4E7EC;
-            letter-spacing: -0.01em;
+            max-width: 100%;
         }}
         .section-subtext {{
             font-size: 13px;
@@ -270,6 +296,32 @@ def brand_strip():
         <div class="brand-strip">
             <span class="brand-name">{BRAND_NAME}</span>
             <span class="brand-tagline">· {BRAND_TAGLINE}</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def sidebar_nav_header():
+    """
+    "Tesco / Inventory Control Tower" header box at the top of the sidebar,
+    above the page nav list (Design_Inspiration-9) — confirmed 2026-08-15
+    to add ONLY this header, not restyle the individual nav links
+    themselves (flagged as technically risky since Streamlit doesn't
+    officially support custom styling of its auto-generated sidebar nav
+    DOM, and you agreed not to attempt that part).
+    """
+    st.sidebar.markdown(
+        f"""
+        <div style="background:{TESCO_DARK_BLUE}; border-radius:10px; padding:14px 16px;
+                    margin-bottom:12px; box-shadow:0 2px 8px rgba(16,24,40,0.15);">
+            <div style="color:white; font-weight:800; font-size:16px; display:flex;
+                        align-items:center; gap:8px;">
+                🏢 {BRAND_NAME}
+            </div>
+            <div style="color:rgba(255,255,255,0.85); font-size:12px; font-weight:600; margin-top:2px;">
+                Inventory Control Tower
+            </div>
         </div>
         """,
         unsafe_allow_html=True,

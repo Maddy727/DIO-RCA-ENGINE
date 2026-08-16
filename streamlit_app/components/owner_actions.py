@@ -29,10 +29,11 @@ import streamlit as st
 
 from utils.dio_aggregation import rollup
 from utils.aggregations import owner_scoped_sku_store_keys, owner_action_items
+from utils.priority_labels import TABLE_TEXT_COLORS
 from components.kpi_strip import render_kpi_strip
 from components.tables import render_table
 from components.sku_detail import render_sku_detail
-from components.styling import empty_state_message
+from components.styling import empty_state_message, dio_variance_color
 
 OWNERS = ["Demand Planner", "Replenishment Planner", "Buyer", "Network Planner", "Store Manager"]
 
@@ -62,6 +63,7 @@ def render_owner_action_center(wide: pd.DataFrame, corrective_action_long: pd.Da
     render_table(
         by_region[["Region", "DIO", "DIO_Target", "DIO_Variance", "Inventory_Value", "Excess_Value", "SKU_Store_Count"]],
         gbp_cols=["Inventory_Value", "Excess_Value"], day_cols=["DIO", "DIO_Target", "DIO_Variance"],
+        text_color_cols={"DIO_Variance": dio_variance_color},
     )
 
     # ---- Drill: Region -> Store -> Action Items ----
@@ -91,6 +93,7 @@ def render_owner_action_center(wide: pd.DataFrame, corrective_action_long: pd.Da
         items[["SKU_ID", "SKU_Name", "Category", "Root_Cause", "Corrective_Action",
                "Priority_Label", "Priority_Score", "Excess_Value", "Review_Owner"]],
         gbp_cols=["Excess_Value"], key="csco_owner_action_items", selectable=True,
+        text_color_cols={"Priority_Label": lambda v: TABLE_TEXT_COLORS.get(v)},
     )
     if selected is not None:
         st.markdown("---")
